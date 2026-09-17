@@ -193,11 +193,11 @@
           <div class="field"><div class="field-left"><label>Game</label>
             <select id="f-game">
               <optgroup label="Verified">
-                <option value="0.022" selected>CS2 / CS:GO</option>
+                <option value="0.022">CS2 / CS:GO</option>
                 <option value="0.022">Apex Legends</option>
                 <option value="0.022">Titanfall 2</option>
                 <option value="0.022">Team Fortress 2</option>
-                <option value="0.07">Valorant</option>
+                <option value="0.07" selected>Valorant</option>
                 <option value="0.0066">Overwatch 2</option>
                 <option value="0.0066">Call of Duty</option>
                 <option value="0.0066">The Finals</option>
@@ -210,9 +210,9 @@
               <optgroup label="Manual"><option value="custom">Custom yaw…</option></optgroup>
             </select></div></div>
           <div class="field"><div class="field-left"><label>In-game sensitivity</label>
-            <input type="number" id="f-sens" value="1.5" min="0.001" step="0.01"></div></div>
+            <input type="number" id="f-sens" value="0.215" min="0.001" step="0.01"></div></div>
           <div class="field"><div class="field-left"><label>Mouse DPI</label>
-            <input type="number" id="f-dpi" value="800" min="1" step="50"></div></div>
+            <input type="number" id="f-dpi" value="1600" min="1" step="50"></div></div>
         </div>
         <div class="field" id="f-yaw-row" style="display:none;margin-bottom:.75rem">
           <div class="field-left"><label>Custom yaw value</label>
@@ -226,7 +226,7 @@
         <p class="panel-sub">Works for any game, no yaw needed. In game, put your crosshair on a fixed object, then drag your mouse in a straight line until you have turned exactly one full circle back to that object. Measure how far your mouse travelled.</p>
         <div class="grid-2">
           <div class="field"><div class="field-left"><label>Mouse travel distance</label>
-            <input type="number" id="m-dist" value="30" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
+            <input type="number" id="m-dist" value="40" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
           <div class="field"><div class="field-left"><label>Turns completed</label>
             <input type="number" id="m-turns" value="1" min="0.25" step="0.25"></div><span class="field-unit">× 360°</span></div>
         </div>
@@ -259,7 +259,7 @@
       <div class="setup-card setup-a">
         <p class="setup-heading">Setup A — current</p>
         <div class="field" id="a-cm-field"><div class="field-left"><label>cm/360</label>
-          <input type="number" id="a-cm" value="30" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
+          <input type="number" id="a-cm" value="38" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
         <div class="field"><div class="field-left"><label>Horizontal FOV</label>
           <input type="number" id="a-fov" value="103" min="1" max="179" step="1"></div><span class="field-unit">deg</span></div>
         <div class="field"><div class="field-left"><label>Monitor diagonal</label>
@@ -267,7 +267,7 @@
         <div class="field"><div class="field-left"><label>Aspect ratio</label>
           <select id="a-aspect"><option value="16/9" selected>16:9</option><option value="16/10">16:10</option><option value="21/9">21:9</option><option value="4/3">4:3</option><option value="32/9">32:9</option></select></div></div>
         <div class="field"><div class="field-left"><label>Viewing distance</label>
-          <input type="number" id="a-dist" value="60" min="1" step="1"></div><span class="field-unit">cm</span></div>
+          <input type="number" id="a-dist" value="40" min="1" step="1"></div><span class="field-unit">cm</span></div>
       </div>
 
       <div class="setup-card setup-b">
@@ -281,7 +281,7 @@
         <div class="field"><div class="field-left"><label>Aspect ratio</label>
           <select id="b-aspect"><option value="16/9" selected>16:9</option><option value="16/10">16:10</option><option value="21/9">21:9</option><option value="4/3">4:3</option><option value="32/9">32:9</option></select></div></div>
         <div class="field"><div class="field-left"><label>Viewing distance</label>
-          <input type="number" id="b-dist" value="60" min="1" step="1"></div><span class="field-unit">cm</span></div>
+          <input type="number" id="b-dist" value="40" min="1" step="1"></div><span class="field-unit">cm</span></div>
       </div>
     </div>
 
@@ -321,11 +321,11 @@
         <div class="field"><div class="field-left"><label>Game on setup B</label>
           <select id="r-game">
             <optgroup label="Verified">
-              <option value="0.022" selected>CS2 / CS:GO</option>
+              <option value="0.022">CS2 / CS:GO</option>
               <option value="0.022">Apex Legends</option>
               <option value="0.022">Titanfall 2</option>
               <option value="0.022">Team Fortress 2</option>
-              <option value="0.07">Valorant</option>
+              <option value="0.07" selected>Valorant</option>
               <option value="0.0066">Overwatch 2</option>
               <option value="0.0066">Call of Duty</option>
               <option value="0.0066">The Finals</option>
@@ -338,7 +338,7 @@
             <optgroup label="Manual"><option value="custom">Custom yaw…</option></optgroup>
           </select></div></div>
         <div class="field"><div class="field-left"><label>Mouse DPI on setup B</label>
-          <input type="number" id="r-dpi" value="800" min="1" step="50"></div></div>
+          <input type="number" id="r-dpi" value="1600" min="1" step="50"></div></div>
       </div>
       <div class="field" id="r-yaw-row" style="display:none;margin-bottom:.75rem">
         <div class="field-left"><label>Custom yaw value</label>
