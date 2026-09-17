@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAS Converter — Visual Angular Sensitivity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:#0d0f14; --bg-2:#13161e; --bg-3:#1a1e28;
+    --border:#252a38; --accent:#4fc3f7; --accent-dim:#1e4a63;
+    --green:#69f0ae; --green-dim:#1b4332; --amber:#ffb74d; --rose:#f48fb1;
+    --text:#e8eaf0; --text-2:#8890a8; --text-3:#4a5070;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif; --radius:10px;
+  }
+
+  html { font-size:16px; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; padding:3rem 1.25rem 5rem; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:700px; margin:0 auto; }
+
+  .eyebrow { font-family:var(--mono); font-size:.7rem; color:var(--accent); letter-spacing:.12em; margin-bottom:.6rem; }
+  h1 { font-size:1.75rem; font-weight:600; letter-spacing:-.02em; line-height:1.2; margin-bottom:.5rem; }
+  h1 span { color:var(--text-2); font-weight:300; }
+  .subtitle { font-size:.875rem; color:var(--text-2); line-height:1.6; max-width:56ch; margin-bottom:2rem; }
+
+  .tabs { display:flex; gap:2px; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:3px; margin-bottom:2rem; width:fit-content; }
+  .tab { font-family:var(--sans); font-size:.82rem; font-weight:500; color:var(--text-2); background:transparent; border:none; border-radius:7px; padding:.5rem 1.2rem; cursor:pointer; transition:background .15s,color .15s; }
+  .tab.active { background:var(--bg-3); color:var(--text); }
+  .tab:hover:not(.active) { color:var(--text); }
+
+  .view { display:none; }
+  .view.active { display:block; }
+
+  .divider { display:flex; align-items:center; gap:.9rem; margin:2.5rem 0 1.25rem; }
+  .divider-text { font-family:var(--mono); font-size:.68rem; color:var(--text-3); letter-spacing:.1em; white-space:nowrap; }
+  .divider-line { flex:1; height:1px; background:var(--border); }
+
+  .panel { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.3rem; }
+  .panel.amber-top { border-top:2px solid var(--amber); }
+  .panel.green-top { border-top:2px solid var(--green); }
+  .panel-head { font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; margin-bottom:.4rem; }
+  .panel-head.amber { color:var(--amber); }
+  .panel-head.green { color:var(--green); }
+  .panel-sub { font-size:.76rem; color:var(--text-2); line-height:1.5; margin-bottom:1rem; }
+
+  .mode-switch { display:flex; gap:2px; background:var(--bg-3); border:1px solid var(--border); border-radius:7px; padding:2px; margin-bottom:1rem; width:fit-content; }
+  .mode-btn { font-family:var(--sans); font-size:.72rem; font-weight:500; color:var(--text-3); background:transparent; border:none; border-radius:5px; padding:.35rem .8rem; cursor:pointer; transition:background .15s,color .15s; }
+  .mode-btn.active { background:var(--bg-2); color:var(--amber); }
+
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.5rem; margin-bottom:.75rem; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; margin-bottom:.75rem; }
+
+  .out-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:.7rem .9rem; }
+  .out-row-label { font-size:.72rem; color:var(--text-2); }
+  .out-row-val { font-family:var(--mono); font-size:1.4rem; font-weight:600; }
+  .out-row-val.amber { color:var(--amber); }
+  .out-row-val.green { color:var(--green); }
+
+  .use-btn { font-family:var(--sans); font-size:.72rem; font-weight:500; color:var(--bg); background:var(--amber); border:none; border-radius:6px; padding:.4rem .85rem; cursor:pointer; transition:opacity .15s; }
+  .use-btn:hover { opacity:.85; }
+  .use-btn:disabled { opacity:.3; cursor:default; }
+
+  .copy-inline { font-family:var(--mono); font-size:.7rem; color:var(--text-3); background:transparent; border:1px solid var(--border); border-radius:6px; padding:.35rem .7rem; cursor:pointer; transition:color .15s,border-color .15s; }
+  .copy-inline:hover { color:var(--green); border-color:var(--green-dim); }
+
+  .note { font-size:.68rem; color:var(--text-3); line-height:1.5; margin-top:.6rem; }
+  .warn { font-size:.68rem; color:var(--rose); line-height:1.5; margin-top:.6rem; padding:.5rem .7rem; background:rgba(244,143,177,.07); border-left:2px solid var(--rose); border-radius:0; }
+
+  .setups { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+  .setup-card { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem; }
+  .setup-card.setup-a { border-top:2px solid var(--accent); }
+  .setup-card.setup-b { border-top:2px solid var(--green); }
+  .setup-heading { font-family:var(--mono); font-size:.68rem; letter-spacing:.1em; margin-bottom:1rem; }
+  .setup-a .setup-heading { color:var(--accent); }
+  .setup-b .setup-heading { color:var(--green); }
+
+  .field { background:var(--bg-3); border:1px solid var(--border); border-radius:8px; padding:.65rem .85rem; display:grid; grid-template-columns:1fr auto; align-items:center; gap:.4rem; margin-bottom:.5rem; transition:border-color .3s; }
+  .field:last-child { margin-bottom:0; }
+  .field:focus-within { border-color:var(--accent-dim); }
+  .field.flash { border-color:var(--amber); }
+  .field-left { display:flex; flex-direction:column; gap:.15rem; min-width:0; }
+  .field label { font-size:.68rem; color:var(--text-2); font-weight:500; }
+  .field input, .field select { background:transparent; border:none; outline:none; font-family:var(--mono); font-size:.95rem; font-weight:600; color:var(--text); width:100%; padding:0; }
+  .field select { cursor:pointer; }
+  .field select option, .field select optgroup { background:var(--bg-3); }
+  .field select optgroup { color:var(--text-3); font-style:normal; }
+  .field-unit { font-family:var(--mono); font-size:.68rem; color:var(--text-3); white-space:nowrap; }
+
+  .result-block { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.4rem 1.5rem; margin-bottom:1.25rem; display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  .result-item { display:flex; flex-direction:column; gap:.3rem; }
+  .result-label { font-family:var(--mono); font-size:.68rem; letter-spacing:.08em; }
+  .result-label.a { color:var(--accent); }
+  .result-label.b { color:var(--green); }
+  .result-value { font-family:var(--mono); font-size:2.2rem; font-weight:600; letter-spacing:-.02em; line-height:1; }
+  .result-value.a { color:var(--accent); }
+  .result-value.b { color:var(--green); }
+  .result-unit { font-size:.72rem; color:var(--text-3); font-family:var(--mono); }
+  .result-error { grid-column:1/-1; font-size:.78rem; color:var(--rose); font-family:var(--mono); min-height:1em; }
+
+  .breakdown { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1rem 1.25rem; margin-bottom:1.25rem; }
+  .breakdown-title { font-size:.68rem; font-family:var(--mono); color:var(--text-3); letter-spacing:.08em; margin-bottom:.75rem; }
+  .bd-row { display:grid; grid-template-columns:1fr auto auto; gap:1rem; padding:.3rem 0; border-bottom:1px solid var(--border); font-size:.75rem; align-items:baseline; }
+  .bd-row:last-child { border-bottom:none; }
+  .bd-label { color:var(--text-2); }
+  .bd-a { font-family:var(--mono); color:var(--accent); min-width:94px; text-align:right; }
+  .bd-b { font-family:var(--mono); color:var(--green); min-width:94px; text-align:right; }
+  .bd-head { color:var(--text-3); font-family:var(--mono); font-size:.65rem; }
+
+  .formula-block { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem 1.4rem; margin-bottom:1.5rem; }
+  .formula-label { font-size:.68rem; color:var(--text-3); font-family:var(--mono); letter-spacing:.08em; margin-bottom:.6rem; }
+  .formula { font-family:var(--mono); font-size:.8rem; color:var(--text-2); line-height:2; }
+  .formula .fa { color:var(--accent); }
+  .formula .fg { color:var(--green); }
+  .formula .fy { color:var(--amber); }
+
+  .doc h2 { font-size:1.1rem; font-weight:600; margin:2.5rem 0 .7rem; letter-spacing:-.01em; }
+  .doc h2:first-child { margin-top:0; }
+  .doc p { font-size:.875rem; color:var(--text-2); line-height:1.75; margin-bottom:1rem; max-width:64ch; }
+  .doc p strong { color:var(--text); font-weight:500; }
+  .doc .fig { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1rem .9rem; margin:1.25rem 0 1.5rem; }
+  .doc .fig svg { display:block; width:100%; height:auto; }
+  .doc .fig-cap { font-size:.72rem; color:var(--text-3); font-family:var(--mono); margin-top:.8rem; padding-top:.7rem; border-top:1px solid var(--border); line-height:1.6; }
+  .doc .eq { font-family:var(--mono); font-size:.85rem; color:var(--text); background:var(--bg-2); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; padding:.9rem 1.1rem; margin:1.2rem 0; overflow-x:auto; line-height:1.9; }
+  .doc .eq.g { border-left-color:var(--green); }
+  .doc .eq.y { border-left-color:var(--amber); }
+  .doc .eq .c1 { color:var(--accent); }
+  .doc .eq .c2 { color:var(--green); }
+  .doc .eq .c3 { color:var(--amber); }
+  .doc ul { margin:0 0 1.2rem 1.1rem; }
+  .doc li { font-size:.85rem; color:var(--text-2); line-height:1.75; margin-bottom:.35rem; }
+  .doc li strong { color:var(--text); font-weight:500; }
+  .doc code { font-family:var(--mono); font-size:.8rem; color:var(--amber); }
+  .doc table { width:100%; border-collapse:collapse; font-size:.78rem; margin:1rem 0 1.5rem; }
+  .doc th { text-align:left; color:var(--text-3); font-family:var(--mono); font-size:.66rem; letter-spacing:.06em; padding:.45rem .6rem; border-bottom:1px solid var(--border); font-weight:500; }
+  .doc td { padding:.45rem .6rem; border-bottom:1px solid var(--border); color:var(--text-2); font-family:var(--mono); }
+  .doc td:first-child { font-family:var(--sans); }
+  .doc td.hl { color:var(--green); }
+
+  .st { font-family:'Inter',sans-serif; font-size:12px; fill:#8890a8; }
+  .stb { font-family:'Inter',sans-serif; font-size:12px; font-weight:500; fill:#e8eaf0; }
+  .sm { font-family:'JetBrains Mono',monospace; font-size:11px; fill:#4a5070; }
+  .sa { font-family:'JetBrains Mono',monospace; font-size:11px; fill:#4fc3f7; }
+  .sg { font-family:'JetBrains Mono',monospace; font-size:11px; fill:#69f0ae; }
+  .sy { font-family:'JetBrains Mono',monospace; font-size:11px; fill:#ffb74d; }
+
+  footer { font-size:.72rem; color:var(--text-3); line-height:1.7; border-top:1px solid var(--border); padding-top:1.5rem; margin-top:2.5rem; }
+
+  @media (max-width:580px) {
+    .setups { grid-template-columns:1fr; }
+    .result-block { grid-template-columns:1fr; }
+    .grid-3,.grid-2 { grid-template-columns:1fr; }
+    h1 { font-size:1.4rem; }
+    .result-value { font-size:1.9rem; }
+    .tabs { width:100%; }
+    .tab { flex:1; padding:.5rem .5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">FPS Sensitivity</p>
+    <h1>VAS Converter <span>— Visual Angular Sensitivity</span></h1>
+    <p class="subtitle">Convert your sensitivity between monitors, viewing distances, and games while preserving exactly how fast the world feels to your eye.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-conv" onclick="showView('conv')">Converter</button>
+    <button class="tab" id="tab-doc" onclick="showView('doc')">How it works</button>
+  </div>
+
+  <!-- ══════════ CONVERTER ══════════ -->
+  <div class="view active" id="view-conv">
+
+    <div class="divider"><span class="divider-text">step 1 — find your cm/360</span><span class="divider-line"></span></div>
+
+    <div class="panel amber-top">
+      <p class="panel-head amber">optional — skip if you already know it</p>
+
+      <div class="mode-switch">
+        <button class="mode-btn active" id="mode-calc" onclick="setMode('calc')">From game settings</button>
+        <button class="mode-btn" id="mode-meas" onclick="setMode('meas')">Measure it yourself</button>
+      </div>
+
+      <div id="pane-calc">
+        <p class="panel-sub">Pick the game you play now, enter your in-game sensitivity and mouse DPI.</p>
+        <div class="grid-3">
+          <div class="field"><div class="field-left"><label>Game</label>
+            <select id="f-game">
+              <optgroup label="Verified">
+                <option value="0.022" selected>CS2 / CS:GO</option>
+                <option value="0.022">Apex Legends</option>
+                <option value="0.022">Titanfall 2</option>
+                <option value="0.022">Team Fortress 2</option>
+                <option value="0.07">Valorant</option>
+                <option value="0.0066">Overwatch 2</option>
+                <option value="0.0066">Call of Duty</option>
+                <option value="0.0066">The Finals</option>
+              </optgroup>
+              <optgroup label="Unverified — check before trusting">
+                <option value="0.0055">Escape from Tarkov *</option>
+                <option value="0.0066">Delta Force *</option>
+                <option value="0.0066">Arena Breakout: Infinite *</option>
+              </optgroup>
+              <optgroup label="Manual"><option value="custom">Custom yaw…</option></optgroup>
+            </select></div></div>
+          <div class="field"><div class="field-left"><label>In-game sensitivity</label>
+            <input type="number" id="f-sens" value="1.5" min="0.001" step="0.01"></div></div>
+          <div class="field"><div class="field-left"><label>Mouse DPI</label>
+            <input type="number" id="f-dpi" value="800" min="1" step="50"></div></div>
+        </div>
+        <div class="field" id="f-yaw-row" style="display:none;margin-bottom:.75rem">
+          <div class="field-left"><label>Custom yaw value</label>
+          <input type="number" id="f-yaw" value="0.022" min="0.0001" step="0.0001"></div>
+          <span class="field-unit">deg/count</span>
+        </div>
+        <div class="warn" id="yaw-warn" style="display:none">The yaw for this game could not be verified against a reliable source. Treat the result as an estimate and confirm with the measure mode above.</div>
+      </div>
+
+      <div id="pane-meas" style="display:none">
+        <p class="panel-sub">Works for any game, no yaw needed. In game, put your crosshair on a fixed object, then drag your mouse in a straight line until you have turned exactly one full circle back to that object. Measure how far your mouse travelled.</p>
+        <div class="grid-2">
+          <div class="field"><div class="field-left"><label>Mouse travel distance</label>
+            <input type="number" id="m-dist" value="30" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
+          <div class="field"><div class="field-left"><label>Turns completed</label>
+            <input type="number" id="m-turns" value="1" min="0.25" step="0.25"></div><span class="field-unit">× 360°</span></div>
+        </div>
+        <p class="note" style="margin-bottom:.75rem">Tip: measuring two or four full turns and dividing gives a more accurate result than a single turn.</p>
+      </div>
+
+      <div class="out-row">
+        <span class="out-row-label">Your cm/360</span>
+        <span style="display:flex;align-items:center;gap:1rem">
+          <span class="out-row-val amber" id="f-out">—</span>
+          <button class="use-btn" id="f-use" onclick="useFinder()">Use this</button>
+        </span>
+      </div>
+      <p class="note">cm/360 = 360 × 2.54 / (yaw × sens × DPI). Yaw values are community-derived and can shift with game patches.</p>
+    </div>
+
+    <div class="divider"><span class="divider-text">step 2 — convert between setups</span><span class="divider-line"></span></div>
+
+    <div class="formula-block">
+      <p class="formula-label">what is being solved</p>
+      <div class="formula">
+        W = diagonal × 2.54 × r / √(1 + r²)<br>
+        <span class="fy">K</span> = (W / 2) / ( d · tan( FOV / 2 ) )<br>
+        VAS = <span class="fa">360 / cm360_A</span> × <span class="fy">K_A</span><br>
+        cm360_B = cm360_A × <span class="fg">K_B / K_A</span>
+      </div>
+    </div>
+
+    <div class="setups">
+      <div class="setup-card setup-a">
+        <p class="setup-heading">Setup A — current</p>
+        <div class="field" id="a-cm-field"><div class="field-left"><label>cm/360</label>
+          <input type="number" id="a-cm" value="30" min="0.1" step="0.1"></div><span class="field-unit">cm</span></div>
+        <div class="field"><div class="field-left"><label>Horizontal FOV</label>
+          <input type="number" id="a-fov" value="103" min="1" max="179" step="1"></div><span class="field-unit">deg</span></div>
+        <div class="field"><div class="field-left"><label>Monitor diagonal</label>
+          <input type="number" id="a-diag" value="27" min="1" step="0.1"></div><span class="field-unit">in</span></div>
+        <div class="field"><div class="field-left"><label>Aspect ratio</label>
+          <select id="a-aspect"><option value="16/9" selected>16:9</option><option value="16/10">16:10</option><option value="21/9">21:9</option><option value="4/3">4:3</option><option value="32/9">32:9</option></select></div></div>
+        <div class="field"><div class="field-left"><label>Viewing distance</label>
+          <input type="number" id="a-dist" value="60" min="1" step="1"></div><span class="field-unit">cm</span></div>
+      </div>
+
+      <div class="setup-card setup-b">
+        <p class="setup-heading">Setup B — target</p>
+        <div class="field" style="opacity:.4"><div class="field-left"><label>cm/360</label>
+          <input type="text" value="solved below" disabled style="color:var(--text-3);font-weight:400;font-size:.82rem"></div></div>
+        <div class="field"><div class="field-left"><label>Horizontal FOV</label>
+          <input type="number" id="b-fov" value="103" min="1" max="179" step="1"></div><span class="field-unit">deg</span></div>
+        <div class="field"><div class="field-left"><label>Monitor diagonal</label>
+          <input type="number" id="b-diag" value="32" min="1" step="0.1"></div><span class="field-unit">in</span></div>
+        <div class="field"><div class="field-left"><label>Aspect ratio</label>
+          <select id="b-aspect"><option value="16/9" selected>16:9</option><option value="16/10">16:10</option><option value="21/9">21:9</option><option value="4/3">4:3</option><option value="32/9">32:9</option></select></div></div>
+        <div class="field"><div class="field-left"><label>Viewing distance</label>
+          <input type="number" id="b-dist" value="60" min="1" step="1"></div><span class="field-unit">cm</span></div>
+      </div>
+    </div>
+
+    <div class="result-block">
+      <div class="result-item">
+        <span class="result-label a">VAS at crosshair</span>
+        <span class="result-value a" id="out-vas">—</span>
+        <span class="result-unit">deg of vision / cm</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label b">cm/360 for setup B</span>
+        <span class="result-value b" id="out-cm">—</span>
+        <span class="result-unit">cm</span>
+      </div>
+      <div class="result-error" id="out-err"></div>
+    </div>
+
+    <div class="breakdown" id="breakdown" style="display:none">
+      <p class="breakdown-title">intermediate values</p>
+      <div class="bd-row"><span class="bd-label bd-head"></span><span class="bd-a bd-head">Setup A</span><span class="bd-b bd-head">Setup B</span></div>
+      <div class="bd-row"><span class="bd-label">Physical width (W)</span><span class="bd-a" id="bd-wa">—</span><span class="bd-b" id="bd-wb">—</span></div>
+      <div class="bd-row"><span class="bd-label">Screen visual angle (θ)</span><span class="bd-a" id="bd-ta">—</span><span class="bd-b" id="bd-tb">—</span></div>
+      <div class="bd-row"><span class="bd-label">In-game deg per cm</span><span class="bd-a" id="bd-ia">—</span><span class="bd-b" id="bd-ib">—</span></div>
+      <div class="bd-row"><span class="bd-label">Projection scale (cm of glass / deg)</span><span class="bd-a" id="bd-pa">—</span><span class="bd-b" id="bd-pb">—</span></div>
+      <div class="bd-row"><span class="bd-label">Eye scale (visual deg / cm of glass)</span><span class="bd-a" id="bd-ya">—</span><span class="bd-b" id="bd-yb">—</span></div>
+      <div class="bd-row"><span class="bd-label">K — combined gain</span><span class="bd-a" id="bd-ka">—</span><span class="bd-b" id="bd-kb">—</span></div>
+      <div class="bd-row"><span class="bd-label">True 1:1 viewing distance</span><span class="bd-a" id="bd-da">—</span><span class="bd-b" id="bd-db">—</span></div>
+      <div class="bd-row"><span class="bd-label">cm/360</span><span class="bd-a" id="bd-ca">—</span><span class="bd-b" id="bd-cb">—</span></div>
+    </div>
+
+    <div class="divider"><span class="divider-text">step 3 — get your in-game setting</span><span class="divider-line"></span></div>
+
+    <div class="panel green-top">
+      <p class="panel-head green">convert cm/360 back to a sensitivity value</p>
+      <p class="panel-sub">Pick the game you'll play on setup B and your mouse DPI — this is the number to type into the game's settings.</p>
+      <div class="grid-2">
+        <div class="field"><div class="field-left"><label>Game on setup B</label>
+          <select id="r-game">
+            <optgroup label="Verified">
+              <option value="0.022" selected>CS2 / CS:GO</option>
+              <option value="0.022">Apex Legends</option>
+              <option value="0.022">Titanfall 2</option>
+              <option value="0.022">Team Fortress 2</option>
+              <option value="0.07">Valorant</option>
+              <option value="0.0066">Overwatch 2</option>
+              <option value="0.0066">Call of Duty</option>
+              <option value="0.0066">The Finals</option>
+            </optgroup>
+            <optgroup label="Unverified — check before trusting">
+              <option value="0.0055">Escape from Tarkov *</option>
+              <option value="0.0066">Delta Force *</option>
+              <option value="0.0066">Arena Breakout: Infinite *</option>
+            </optgroup>
+            <optgroup label="Manual"><option value="custom">Custom yaw…</option></optgroup>
+          </select></div></div>
+        <div class="field"><div class="field-left"><label>Mouse DPI on setup B</label>
+          <input type="number" id="r-dpi" value="800" min="1" step="50"></div></div>
+      </div>
+      <div class="field" id="r-yaw-row" style="display:none;margin-bottom:.75rem">
+        <div class="field-left"><label>Custom yaw value</label>
+        <input type="number" id="r-yaw" value="0.022" min="0.0001" step="0.0001"></div>
+        <span class="field-unit">deg/count</span>
+      </div>
+      <div class="out-row" style="margin-bottom:.5rem">
+        <span class="out-row-label">In-game sensitivity <span id="r-game-label" style="color:var(--text-3)"></span></span>
+        <span style="display:flex;align-items:center;gap:1rem">
+          <span class="out-row-val green" id="r-out">—</span>
+          <button class="copy-inline" onclick="copySens(this)">Copy</button>
+        </span>
+      </div>
+      <div class="out-row" style="background:transparent;border-style:dashed">
+        <span class="out-row-label">Verification — cm/360 from this setting</span>
+        <span class="out-row-val green" id="r-verify" style="font-size:1rem">—</span>
+      </div>
+      <div class="warn" id="r-yaw-warn" style="display:none">The yaw for this game could not be verified. Set the sensitivity in game, then re-measure your actual cm/360 to confirm.</div>
+      <p class="note">sens = 360 × 2.54 / (yaw × DPI × cm/360). Change DPI here if you're also switching mice.</p>
+    </div>
+  </div>
+
+  <!-- ══════════ DETAILS ══════════ -->
+  <div class="view doc" id="view-doc">
+
+    <h2>The problem cm/360 doesn't solve</h2>
+    <p>cm/360 is a great number, but it only describes <strong>what happens inside the game engine.</strong> Move your mouse 1 cm and the camera rotates by a fixed number of in-game degrees. That much really is constant across setups.</p>
+    <p>What it cannot tell you is how far the crosshair appears to move <strong>across your vision</strong> — and that is what your aim is actually calibrated to. Two things break the link, and cm/360 is blind to both.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 345" xmlns="http://www.w3.org/2000/svg">
+        <text class="sm" x="200" y="22" text-anchor="middle">viewed from above</text>
+
+        <line x1="100" y1="160" x2="300" y2="42"  stroke="#69f0ae" stroke-width=".8" opacity=".5"/>
+        <line x1="100" y1="160" x2="300" y2="278" stroke="#69f0ae" stroke-width=".8" opacity=".5"/>
+        <line x1="100" y1="160" x2="302" y2="60"  stroke="#4fc3f7" stroke-width=".9" opacity=".75"/>
+        <line x1="100" y1="160" x2="302" y2="260" stroke="#4fc3f7" stroke-width=".9" opacity=".75"/>
+
+        <rect x="300" y="42" width="11" height="236" rx="2" fill="#1a1e28" stroke="#69f0ae" stroke-width="1"/>
+        <rect x="302.5" y="60" width="6" height="200" rx="2" fill="#4fc3f7" opacity=".55"/>
+
+        <path d="M181.8 111.6 A 95 95 0 0 1 181.8 208.4" fill="none" stroke="#69f0ae" stroke-width="1"/>
+        <path d="M153.7 133.2 A 60 60 0 0 1 153.7 186.8" fill="none" stroke="#4fc3f7" stroke-width="1"/>
+
+        <circle cx="100" cy="160" r="9" fill="none" stroke="#8890a8" stroke-width="1.2"/>
+        <circle cx="103" cy="160" r="3.5" fill="#8890a8"/>
+        <text class="sm" x="100" y="192" text-anchor="middle">eye</text>
+
+        <line x1="100" y1="310" x2="300" y2="310" stroke="#4a5070" stroke-width="1"/>
+        <line x1="100" y1="305" x2="100" y2="315" stroke="#4a5070" stroke-width="1"/>
+        <line x1="300" y1="305" x2="300" y2="315" stroke="#4a5070" stroke-width="1"/>
+        <text class="sm" x="200" y="330" text-anchor="middle">d = 60 cm — identical for both</text>
+
+        <rect x="372" y="104" width="10" height="34" rx="2" fill="#1a1e28" stroke="#69f0ae" stroke-width="1"/>
+        <text class="sg" x="394" y="118">32 inch — W = 70.8 cm</text>
+        <text class="sm" x="394" y="134">fills 61.1&#176; of your vision</text>
+
+        <rect x="374" y="164" width="6" height="30" rx="2" fill="#4fc3f7" opacity=".55"/>
+        <text class="sa" x="394" y="176">27 inch — W = 59.8 cm</text>
+        <text class="sm" x="394" y="192">fills 53.0&#176; of your vision</text>
+
+        <text class="sm" x="394" y="234">Same seat, same cm/360 —</text>
+        <text class="sm" x="394" y="252">the 32 inch sweeps 15% more</text>
+        <text class="sm" x="394" y="270">vision per cm of mouse.</text>
+      </svg>
+      <p class="fig-cap">Blind spot 1 &#8212; screen geometry. Both panels sit at the same 60 cm; only the width differs. The 27-inch span nests inside the 32-inch span, so the wider screen captures a larger cone of your vision and the same mouse movement sweeps more degrees across your retina.</p>
+    </div>
+
+    <h2>cm/360 is also blind to FOV</h2>
+    <p>This one catches people out more often, because it happens <strong>without changing a single piece of hardware.</strong> Two players on identical monitors, identical seats, identical cm/360 — but different FOV sliders — do not have the same visual sensitivity. Not even close.</p>
+    <p>The reason is that FOV decides how much of the game world gets squeezed onto the same piece of glass. Raise your FOV and every object shrinks, including the distance your crosshair travels for a given rotation. The engine still turns exactly the same number of degrees per centimetre. But those degrees now buy you less screen.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg">
+        <rect x="60" y="40" width="230" height="130" rx="4" fill="#1a1e28" stroke="#4fc3f7" stroke-width="1"/>
+        <text class="sa" x="175" y="30" text-anchor="middle">FOV 80°</text>
+        <rect x="140" y="95" width="60" height="20" rx="3" fill="#4fc3f7" opacity=".35"/>
+        <line x1="140" y1="140" x2="200" y2="140" stroke="#4fc3f7" stroke-width="1.5"/>
+        <line x1="140" y1="135" x2="140" y2="145" stroke="#4fc3f7" stroke-width="1.5"/>
+        <line x1="200" y1="135" x2="200" y2="145" stroke="#4fc3f7" stroke-width="1.5"/>
+        <text class="sa" x="170" y="160" text-anchor="middle">0.62 cm</text>
+        <text class="sm" x="175" y="190" text-anchor="middle">1 in-game degree</text>
+
+        <rect x="350" y="40" width="230" height="130" rx="4" fill="#1a1e28" stroke="#69f0ae" stroke-width="1"/>
+        <text class="sg" x="465" y="30" text-anchor="middle">FOV 120°</text>
+        <rect x="450" y="95" width="29" height="20" rx="3" fill="#69f0ae" opacity=".35"/>
+        <line x1="450" y1="140" x2="479" y2="140" stroke="#69f0ae" stroke-width="1.5"/>
+        <line x1="450" y1="135" x2="450" y2="145" stroke="#69f0ae" stroke-width="1.5"/>
+        <line x1="479" y1="135" x2="479" y2="145" stroke="#69f0ae" stroke-width="1.5"/>
+        <text class="sg" x="464" y="160" text-anchor="middle">0.30 cm</text>
+        <text class="sm" x="465" y="190" text-anchor="middle">1 in-game degree</text>
+
+        <text class="st" x="320" y="225" text-anchor="middle">Same monitor, same cm/360 — but the wider FOV halves how far your crosshair travels</text>
+      </svg>
+      <p class="fig-cap">Blind spot 2 — field of view. At FOV 80 one in-game degree moves the crosshair 0.62 cm across a 27-inch screen. At FOV 120 it moves only 0.30 cm. Identical mouse movement, half the visual result.</p>
+    </div>
+
+    <p>Run the whole thing out and the effect is dramatic. All four rows below use the same 30 cm/360, the same 27-inch monitor, and the same 60 cm seat:</p>
+
+    <table>
+      <thead><tr><th>FOV</th><th>cm/360</th><th>VAS</th><th>relative feel</th></tr></thead>
+      <tbody>
+        <tr><td>80°</td><td>30</td><td class="hl">7.12</td><td>fastest</td></tr>
+        <tr><td>90°</td><td>30</td><td class="hl">5.98</td><td>−16%</td></tr>
+        <tr><td>103°</td><td>30</td><td class="hl">4.76</td><td>−33%</td></tr>
+        <tr><td>120°</td><td>30</td><td class="hl">3.45</td><td>−52%</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Going from FOV 80 to FOV 120 halves your visual sensitivity while cm/360 never moves.</strong> This is why matching cm/360 across two games with different FOV defaults leaves your aim feeling wrong, and why "just use the same cm/360" is incomplete advice.</p>
+
+    <h2>The chain, one link at a time</h2>
+    <p>VAS fixes both blind spots by following the movement all the way from your hand to your retina. There are three links, and each one has real physical units.</p>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg">
+        <rect x="150" y="35" width="288" height="120" rx="4" fill="#1a1e28" stroke="#252a38" stroke-width="1"/>
+        <line x1="150" y1="155" x2="438" y2="35" stroke="#ffb74d" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <text class="sy" x="280" y="88">D = 27 in</text>
+        <line x1="150" y1="172" x2="438" y2="172" stroke="#4fc3f7" stroke-width="1"/>
+        <line x1="150" y1="167" x2="150" y2="177" stroke="#4fc3f7" stroke-width="1"/>
+        <line x1="438" y1="167" x2="438" y2="177" stroke="#4fc3f7" stroke-width="1"/>
+        <text class="sa" x="294" y="187" text-anchor="middle">W = 59.77 cm</text>
+        <text class="stb" x="294" y="80" text-anchor="middle">16 : 9</text>
+        <text class="sm" x="294" y="118" text-anchor="middle">r = 16/9 = 1.778</text>
+        <text class="sm" x="294" y="205" text-anchor="middle">W = D × 2.54 × r / √(1 + r²)</text>
+      </svg>
+      <p class="fig-cap">Prerequisite — monitors are sold by diagonal, but every step below needs horizontal width. For 16:9 the conversion factor is 0.8716.</p>
+    </div>
+
+    <p><strong>Link 1 — your hand becomes rotation.</strong> This is the part cm/360 already handles. Divide 360 by your cm/360 and you have in-game degrees per centimetre of mouse movement.</p>
+
+    <div class="eq y">360 / 30 = <span class="c3">12.0 in-game degrees per cm</span></div>
+
+    <p><strong>Link 2 — rotation becomes distance across the glass.</strong> This is where FOV enters. The game projects the world onto your screen through a tangent relationship, and at the crosshair the scale works out to:</p>
+
+    <div class="eq">projection scale = <span class="c1">(W / 2) / tan( FOV / 2 )</span>&nbsp;&nbsp;→&nbsp;&nbsp;29.89 / 1.257 = 23.77 cm per radian = <span class="c1">0.415 cm per degree</span></div>
+
+    <p>The <code>tan(FOV/2)</code> is not a fudge factor. It is the actual geometry of how a rectilinear projection maps angles onto a flat plane — the same math the renderer itself uses to build every frame.</p>
+
+    <p><strong>Link 3 — distance becomes visual angle.</strong> Your eye sits at distance d. A small movement across the glass subtends an angle, and at the centre of the screen that works out to simply 1/d:</p>
+
+    <div class="eq g">eye scale = <span class="c2">1 / d</span>&nbsp;&nbsp;→&nbsp;&nbsp;1 / 60 radians per cm = <span class="c2">0.955 visual degrees per cm</span></div>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg">
+        <rect x="170" y="14" width="300" height="46" rx="6" fill="#1a1e28" stroke="#252a38" stroke-width="1"/>
+        <text class="stb" x="320" y="35" text-anchor="middle">1 cm of mouse movement</text>
+        <text class="sm" x="320" y="51" text-anchor="middle">physical hand travel</text>
+
+        <line x1="320" y1="60" x2="320" y2="84" stroke="#4a5070" stroke-width="1"/>
+        <path d="M316 79 L320 85 L324 79" fill="none" stroke="#4a5070" stroke-width="1"/>
+        <text class="sy" x="332" y="77">× 360 / cm360</text>
+
+        <rect x="170" y="88" width="300" height="46" rx="6" fill="#1a1e28" stroke="#ffb74d" stroke-width="1"/>
+        <text class="stb" x="320" y="109" text-anchor="middle">12.0 in-game degrees</text>
+        <text class="sy" x="320" y="125" text-anchor="middle">what cm/360 alone tells you</text>
+
+        <line x1="320" y1="134" x2="320" y2="158" stroke="#4a5070" stroke-width="1"/>
+        <path d="M316 153 L320 159 L324 153" fill="none" stroke="#4a5070" stroke-width="1"/>
+        <text class="sa" x="332" y="151">× (W/2) / tan(FOV/2)</text>
+
+        <rect x="170" y="162" width="300" height="46" rx="6" fill="#1a1e28" stroke="#4fc3f7" stroke-width="1"/>
+        <text class="stb" x="320" y="183" text-anchor="middle">4.98 cm across the glass</text>
+        <text class="sa" x="320" y="199" text-anchor="middle">0.415 cm per degree × 12.0</text>
+
+        <line x1="320" y1="208" x2="320" y2="232" stroke="#4a5070" stroke-width="1"/>
+        <path d="M316 227 L320 233 L324 227" fill="none" stroke="#4a5070" stroke-width="1"/>
+        <text class="sg" x="332" y="225">× 1 / d</text>
+
+        <rect x="170" y="236" width="300" height="50" rx="6" fill="#1a1e28" stroke="#69f0ae" stroke-width="1.4"/>
+        <text class="stb" x="320" y="258" text-anchor="middle">4.76 visual degrees</text>
+        <text class="sg" x="320" y="274" text-anchor="middle">VAS = 4.76 deg/cm</text>
+
+        <text class="sm" x="320" y="312" text-anchor="middle">every link carries units — degrees, then centimetres, then degrees again</text>
+      </svg>
+      <p class="fig-cap">The full chain at the default setup: 27 inch, 60 cm, FOV 103°, 30 cm/360. Multiply the three link factors together and you get VAS directly.</p>
+    </div>
+
+    <p>Collapsing links 2 and 3 into a single number gives <strong>K</strong>, the combined gain:</p>
+
+    <div class="eq"><span class="c1">K</span> = (W / 2) / ( d · tan( FOV / 2 ) ) = 0.396<br>VAS = (360 / cm360) × <span class="c1">K</span> = 12.0 × 0.396 = <span class="c2">4.76 deg/cm</span></div>
+
+    <h2>What K actually means</h2>
+    <p>K has an interpretation that makes the whole metric click. Rearranged, it is a ratio of two distances:</p>
+
+    <div class="eq y"><span class="c3">K</span> = d<sub>correct</sub> / d<sub>actual</sub>&nbsp;&nbsp;&nbsp;where&nbsp;&nbsp;d<sub>correct</sub> = (W / 2) / tan( FOV / 2 )</div>
+
+    <p>Every FOV setting implies <strong>one viewing distance at which the image is geometrically honest</strong> — where your eye sits exactly where the virtual camera does and the monitor becomes a literal window. The engine neither knows nor enforces this; it just falls out of the projection math.</p>
+    <p>For a 27-inch screen at FOV 103°, that distance is <strong>23.8 cm.</strong> Nobody sits that close, which is why K lands near 0.4 for most competitive players. Running wide FOV at a normal desk distance means deliberately accepting a fisheye view — a rational trade, since peripheral information wins more fights than correct perspective does.</p>
+    <p>When K = 1 you are sitting at the correct distance, and one in-game degree equals exactly one visual degree.</p>
+
+    <h2>Where the tangent belongs — and where it doesn't</h2>
+    <p>A tangent shows up once in this chain, in link 2, converting FOV into a projection scale. It belongs there because that <em>is</em> the projection geometry.</p>
+    <p>A common mistake is to add a <strong>second</strong> tangent wrapped around the mouse-movement term, usually justified as "correcting for rectilinear distortion." That one is wrong, and it is wrong for a specific reason: your cm/360 was measured by physically turning a full circle, so it already captures how the engine maps mouse counts to rotation. Applying a tangent to it double-counts a correction that is already baked in.</p>
+    <p>The test is simple. <strong>Does the term describe how angles land on glass?</strong> If yes, tangent. If it describes how your mouse produces rotation, cm/360 already covered it.</p>
+
+    <h2>Reading the number</h2>
+    <ul>
+      <li><strong>Higher VAS</strong> — more of your vision sweeps per cm. Feels faster, favours flicking.</li>
+      <li><strong>Lower VAS</strong> — less visual movement per cm. Feels slower, favours tracking and precision.</li>
+      <li><strong>Equal VAS</strong> — two setups feel the same to your eye, regardless of monitor, seat, game, or FOV.</li>
+      <li><strong>K near 1</strong> — your FOV and seating are geometrically matched. Rare in competitive play.</li>
+    </ul>
+    <p>VAS is quoted at the crosshair, which is where aiming happens. Because K ≠ 1 for most setups, the gain is not perfectly uniform across the screen — the periphery runs roughly twice as fast at typical competitive FOV. That is a property of choosing wide FOV, not something a sensitivity formula can fix.</p>
+
+    <h2>What VAS does not account for</h2>
+    <ul>
+      <li><strong>Monitor curvature</strong> — the math assumes a flat panel. Curved screens hold their edges closer to your eye than the formula predicts.</li>
+      <li><strong>Off-centre viewing</strong> — it assumes your eye sits centred and perpendicular to the screen.</li>
+      <li><strong>FOV conventions</strong> — games specify FOV as horizontal, vertical, or Hor+. Feed it a vertical number and the answer will be confidently wrong.</li>
+      <li><strong>ADS and scope multipliers</strong> — separate per-game scalars. VAS describes hipfire only.</li>
+      <li><strong>Mouse acceleration</strong> — the whole model assumes a linear counts-to-rotation mapping.</li>
+    </ul>
+
+  </div>
+
+  <footer>
+    <p>VAS (Visual Angular Sensitivity) measures degrees of your visual field per centimetre of mouse movement, evaluated at the crosshair. Unlike raw cm/360, it accounts for monitor size, viewing distance and in-game FOV — so two setups with the same VAS feel identical to your eye.</p>
+    <p style="margin-top:.75rem">Games marked * have yaw values that could not be verified against a reliable source. Use the measure mode to confirm. Everything runs locally in your browser.</p>
+  </footer>
+
+</div>
+
+<script>
+  var UNVERIFIED = ['Escape from Tarkov *', 'Delta Force *', 'Arena Breakout: Infinite *'];
+  var toDeg = function (r) { return r * 180 / Math.PI; };
+  var toRad = function (d) { return d * Math.PI / 180; };
+  var fmt = function (n, dp) { return n.toFixed(dp); };
+  var finderMode = 'calc';
+
+  function showView(v) {
+    document.getElementById('tab-conv').classList.toggle('active', v === 'conv');
+    document.getElementById('tab-doc').classList.toggle('active', v === 'doc');
+    document.getElementById('view-conv').classList.toggle('active', v === 'conv');
+    document.getElementById('view-doc').classList.toggle('active', v === 'doc');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function setMode(m) {
+    finderMode = m;
+    document.getElementById('mode-calc').classList.toggle('active', m === 'calc');
+    document.getElementById('mode-meas').classList.toggle('active', m === 'meas');
+    document.getElementById('pane-calc').style.display = m === 'calc' ? 'block' : 'none';
+    document.getElementById('pane-meas').style.display = m === 'meas' ? 'block' : 'none';
+    calcFinder();
+  }
+
+  function getR(s) { var p = s.split('/').map(Number); return p[0] / p[1]; }
+
+  function monitorWidth(diagIn, rStr) {
+    var r = getR(rStr);
+    return diagIn * 2.54 * (r / Math.sqrt(1 + r * r));
+  }
+
+  /* all the geometry for one setup */
+  function geom(diag, aspect, dist, fov) {
+    var W = monitorWidth(diag, aspect);
+    var dCorrect = (W / 2) / Math.tan(toRad(fov / 2));   // cm — also the projection scale per radian
+    var K = dCorrect / dist;
+    var projPerDeg = dCorrect * Math.PI / 180;            // cm of glass per in-game degree
+    var eyePerCm = toDeg(1 / dist);                       // visual degrees per cm of glass
+    var theta = 2 * toDeg(Math.atan((W / 2) / dist));
+    return { W: W, dCorrect: dCorrect, K: K, projPerDeg: projPerDeg, eyePerCm: eyePerCm, theta: theta };
+  }
+
+  function yawFrom(selId, yawId) {
+    var sel = document.getElementById(selId);
+    if (sel.value === 'custom') return parseFloat(document.getElementById(yawId).value);
+    return parseFloat(sel.value);
+  }
+
+  function isUnverified(selId) {
+    var sel = document.getElementById(selId);
+    return UNVERIFIED.indexOf(sel.options[sel.selectedIndex].text) !== -1;
+  }
+
+  function calcFinder() {
+    var out = document.getElementById('f-out'), btn = document.getElementById('f-use');
+    if (finderMode === 'meas') {
+      document.getElementById('yaw-warn').style.display = 'none';
+      var dd = parseFloat(document.getElementById('m-dist').value);
+      var tt = parseFloat(document.getElementById('m-turns').value);
+      if (isNaN(dd) || isNaN(tt) || dd <= 0 || tt <= 0) { out.textContent = '—'; btn.disabled = true; return null; }
+      var c = dd / tt; out.textContent = fmt(c, 2); btn.disabled = false; return c;
+    }
+    var sel = document.getElementById('f-game');
+    document.getElementById('f-yaw-row').style.display = sel.value === 'custom' ? 'grid' : 'none';
+    document.getElementById('yaw-warn').style.display = isUnverified('f-game') ? 'block' : 'none';
+    var yaw = yawFrom('f-game', 'f-yaw');
+    var sens = parseFloat(document.getElementById('f-sens').value);
+    var dpi = parseFloat(document.getElementById('f-dpi').value);
+    if ([yaw, sens, dpi].some(function (v) { return isNaN(v) || v <= 0; })) { out.textContent = '—'; btn.disabled = true; return null; }
+    var cm = (360 * 2.54) / (yaw * sens * dpi);
+    out.textContent = fmt(cm, 2); btn.disabled = false; return cm;
+  }
+
+  function useFinder() {
+    var v = calcFinder(); if (v === null) return;
+    document.getElementById('a-cm').value = v.toFixed(2);
+    var f = document.getElementById('a-cm-field');
+    f.classList.add('flash');
+    setTimeout(function () { f.classList.remove('flash'); }, 800);
+    calc();
+  }
+
+  var lastCmB = null;
+
+  function calc() {
+    var cmA = parseFloat(document.getElementById('a-cm').value);
+    var fovA = parseFloat(document.getElementById('a-fov').value);
+    var diagA = parseFloat(document.getElementById('a-diag').value);
+    var distA = parseFloat(document.getElementById('a-dist').value);
+    var fovB = parseFloat(document.getElementById('b-fov').value);
+    var diagB = parseFloat(document.getElementById('b-diag').value);
+    var distB = parseFloat(document.getElementById('b-dist').value);
+    var err = document.getElementById('out-err');
+
+    var all = [cmA, fovA, diagA, distA, fovB, diagB, distB];
+    if (all.some(function (v) { return isNaN(v) || v <= 0; })) {
+      document.getElementById('out-vas').textContent = '—';
+      document.getElementById('out-cm').textContent = '—';
+      document.getElementById('breakdown').style.display = 'none';
+      err.textContent = ''; lastCmB = null; calcReverse(); return;
+    }
+    if (fovA >= 180 || fovB >= 180) {
+      err.textContent = 'FOV must be below 180 degrees.';
+      lastCmB = null; calcReverse(); return;
+    }
+
+    var A = geom(diagA, document.getElementById('a-aspect').value, distA, fovA);
+    var B = geom(diagB, document.getElementById('b-aspect').value, distB, fovB);
+
+    var vasA = (360 / cmA) * A.K;
+    var cmB = cmA * (B.K / A.K);
+    var vasB = (360 / cmB) * B.K;
+    lastCmB = cmB;
+
+    err.textContent = '';
+    document.getElementById('out-vas').textContent = fmt(vasA, 3);
+    document.getElementById('out-cm').textContent = fmt(cmB, 2);
+
+    document.getElementById('breakdown').style.display = 'block';
+    var set = function (id, v) { document.getElementById(id).textContent = v; };
+    set('bd-wa', fmt(A.W, 2) + ' cm');           set('bd-wb', fmt(B.W, 2) + ' cm');
+    set('bd-ta', fmt(A.theta, 2) + '\u00B0');    set('bd-tb', fmt(B.theta, 2) + '\u00B0');
+    set('bd-ia', fmt(360 / cmA, 3));             set('bd-ib', fmt(360 / cmB, 3));
+    set('bd-pa', fmt(A.projPerDeg, 4));          set('bd-pb', fmt(B.projPerDeg, 4));
+    set('bd-ya', fmt(A.eyePerCm, 4));            set('bd-yb', fmt(B.eyePerCm, 4));
+    set('bd-ka', fmt(A.K, 4));                   set('bd-kb', fmt(B.K, 4));
+    set('bd-da', fmt(A.dCorrect, 1) + ' cm');    set('bd-db', fmt(B.dCorrect, 1) + ' cm');
+    set('bd-ca', fmt(cmA, 2) + ' cm');           set('bd-cb', fmt(cmB, 2) + ' cm');
+
+    calcReverse();
+  }
+
+  function calcReverse() {
+    var sel = document.getElementById('r-game');
+    document.getElementById('r-yaw-row').style.display = sel.value === 'custom' ? 'grid' : 'none';
+    document.getElementById('r-yaw-warn').style.display = isUnverified('r-game') ? 'block' : 'none';
+    var yaw = yawFrom('r-game', 'r-yaw');
+    var dpi = parseFloat(document.getElementById('r-dpi').value);
+    var out = document.getElementById('r-out'), verify = document.getElementById('r-verify');
+    document.getElementById('r-game-label').textContent = sel.value === 'custom' ? '(custom yaw)' : '(' + sel.options[sel.selectedIndex].text + ')';
+    if (lastCmB === null || isNaN(yaw) || isNaN(dpi) || yaw <= 0 || dpi <= 0) { out.textContent = '—'; verify.textContent = '—'; return; }
+    var sensB = (360 * 2.54) / (yaw * dpi * lastCmB);
+    out.textContent = sensB.toFixed(3);
+    verify.textContent = ((360 * 2.54) / (yaw * sensB * dpi)).toFixed(2) + ' cm';
+  }
+
+  function copySens(btn) {
+    navigator.clipboard.writeText(document.getElementById('r-out').textContent);
+    btn.textContent = 'Copied';
+    setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+  }
+
+  ['f-game','f-sens','f-dpi','f-yaw','m-dist','m-turns'].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener('input', calcFinder); el.addEventListener('change', calcFinder);
+  });
+  ['a-cm','a-fov','a-diag','a-aspect','a-dist','b-fov','b-diag','b-aspect','b-dist'].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener('input', calc); el.addEventListener('change', calc);
+  });
+  ['r-game','r-dpi','r-yaw'].forEach(function (id) {
+    var el = document.getElementById(id);
+    el.addEventListener('input', calcReverse); el.addEventListener('change', calcReverse);
+  });
+
+  calcFinder();
+  calc();
+</script>
+</body>
+</html>
